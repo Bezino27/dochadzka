@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{%block title%} My super page {%endblock%}
+
+{% block body%}
+    <a href="{% url 'dochadzka_app:post' %}"> Add a new player </a>
+    <hr>
+    {%for post in posts%}
+        {{post.jersey_number}} {{ post.first_name }} {{ post.last_name }} {{ post.attendance_count }} <br>
+        <hr>
+    {%endfor%}
+{%endblock%}
