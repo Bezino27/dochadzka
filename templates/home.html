@@ -5,6 +5,10 @@
 {% block body%}
     <a href="{% url 'dochadzka_app:post' %}"> Add a new player </a>
     <hr>
+    <a href="{% url 'dochadzka_app:training' %}"> Add a new training</a>
+    <hr>
+    <a href=" {% url 'dochadzka_app:category'%} "> Categories</a>
+    <hr>
     {%for post in posts%}
         {{post.jersey_number}} {{ post.first_name }} {{ post.last_name }} {{ post.attendance_count }} <br>
         <hr>

@@ -13,6 +13,12 @@
             {% endfor %}
         </ul>
 {% endif %}
+    {% if request.user.is_authenticated %}
+        You are logged in
+    {% else %}
+        You are logout
+    {% endif %}
+<hr>
     {% block body%}{%endblock%}
 </body>
 </html>
