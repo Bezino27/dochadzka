@@ -4,43 +4,29 @@
 
 {% block body %}
     <a href="{% url 'dochadzka_app:post' %}"> Add a new player </a>
-    <hr>
-    <a href="{% url 'dochadzka_app:training' %}"> Add a new training</a>
-    <hr>
 
-    <!-- Form for selecting a category -->
-    <form method="GET">
-        {% csrf_token %}
-        <label for="category_input">Select Category:</label>
-        <select name="category_input" id="category_input">
-            {% for category in categories %}
-                <option value="{{ category.name }}" {% if category.name == value %}selected{% endif %}>
-                    {{ category.name }} - {{ category.year }}
-                </option>
-            {% endfor %}
-        </select>
-        <button type="submit">Filter Players</button>
-    </form>
     <hr>
-
-    {% if value %}
-        {% for category in categories %}
-            {% if category.name == value %}
-                <h2>Players in category {{ category.name }} ({{ category.year }})</h2>
-                {% for player in category.player.all %}
-                    {{ player.jersey_number }} {{ player.first_name }} {{ player.last_name }} {{ player.attendance_count }} / {{ player.all_training_count }}<br>
-                    <hr>
-                {% endfor %}
-            {% endif %}
-        {% endfor %}
-    {% else %}
-        <p>Please select a category to filter players.</p>
-    {% endif %}
-
-<hr>
-    {% for training in trainings %}
-        {{ training.id }}-{{training.day}} - {{ training.date }} - {{ training.time }}
-        <hr>
-    {% endfor %}
     
+    <h2>Hráči v kategórii {{ category_name }}</h2>
+    {% if players_in_dorastenci %}
+        <ul>
+            {% for player in players_in_dorastenci %}
+                <li>{{ player.jersey_number }} - {{ player.first_name }} {{ player.last_name }} účasť: {{ player.attendance_count }} z {{ player.all_training_count }} tréningov</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Žiadni hráči v tejto kategórii.</p>
+    {% endif %}
+    
+    <h2>Všetky Tréningy</h2>
+    <ul>
+        {% for training in all_trainings %}
+            <li>{{ training.date|date:"d - F" }}  ----> {{ training.day }} {{ training.time }} Počet hráčov: {{ training.players.count }}</li>
+        {% endfor %}
+
+    </ul>
+        <hr>
+    <a href="{% url 'dochadzka_app:training' category_name=category_name %}"> Add a new training</a>
+    <hr>
+    <a href="{% url 'dochadzka_app:index'%}"> Domov</a>
 {% endblock %}

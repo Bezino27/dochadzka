@@ -1,22 +1,37 @@
+from unicodedata import category
+
 from django import forms
 
-from dochadzka_app.models import Player
+from dochadzka_app.models import Player, Category, Training
 
+class PlayerForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields= ['jersey_number', 'first_name', 'last_name', 'birth_date', 'email_1', 'email_2', 'categories']
+        widgets = {
+            'jersey_number': forms.TextInput(attrs={'type': 'number'}),
+            'birth_date': forms.DateInput(attrs={'type': 'date'}),
+            'categories': forms.CheckboxSelectMultiple(),
+            'email_1': forms.EmailInput(attrs={'required': False}),
+        }
 
-class PlayerForm(forms.Form):
-    jersey_number = forms.IntegerField()  # Číslo dresu (unikátnosť sa kontroluje inde)
-    first_name = forms.CharField(max_length=50)  # Krstné meno hráča
-    last_name = forms.CharField(max_length=50)  # Priezvisko hráča
-    birth_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))  # Dátum narodenia hráča
-    email_1 = forms.EmailField()  # Primárny email (unikátnosť sa kontroluje inde)
-    email_2 = forms.EmailField(required=False)  # Sekundárny email (nepovinné)
+class TrainingForm(forms.ModelForm):
+    class Meta:
+        model = Training
+        fields = ['category', 'day', 'date', 'time', 'players']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'time': forms.TimeInput(attrs={'type': 'time'}),
+            'players': forms.CheckboxSelectMultiple,
+        }
 
-class TrainingForm(forms.Form):
-    category_name = forms.CharField(max_length=50)
-    day = forms.CharField(max_length=50)
-    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
-    time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}))
-    player = forms.ModelMultipleChoiceField(
-        queryset=Player.objects.all(),
-        widget=forms.CheckboxSelectMultiple
-    )
+    def __init__(self, *args, **kwargs):
+        category_name = kwargs.pop('category_name', None)
+        super().__init__(*args, **kwargs)
+
+        if category_name:
+            # Získať kategóriu podľa názvu a nastaviť ju ako hodnotu pre field 'category'
+            category = Category.objects.get(name=category_name)
+            self.fields['category'].initial = category
+            # Filtrovať hráčov podľa tejto kategórie
+            self.fields['players'].queryset = Player.objects.filter(categories=category)

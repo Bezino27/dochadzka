@@ -1,3 +1,4 @@
+from lib2to3.fixes.fix_input import context
 from unicodedata import category
 
 from django.contrib import messages
@@ -31,6 +32,10 @@ class AddPlayerView(FormView):
             email_1=form.cleaned_data['email_1'],
             email_2=form.cleaned_data['email_2'],
         )
+
+
+        categories = form.cleaned_data['categories']
+        new_object.categories.set(categories)
         messages.add_message(self.request, messages.SUCCESS, 'Player added!')
         return super().form_valid(form)
 
@@ -38,15 +43,27 @@ from django.views.generic.edit import FormView
 from django.contrib import messages
 from .models import Training
 from .forms import TrainingForm
+from django.urls import reverse
+from django.shortcuts import redirect
 
 class AddTraining(FormView):
     template_name = "new_training.html"
     form_class = TrainingForm
     success_url = '/'
 
-    def dispatch(self, request, *args, **kwargs):
-        self.request = request
-        return super().dispatch(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        # Získaj meno kategórie z URL
+        category_name = self.kwargs.get("category_name")
+        context = super().get_context_data(**kwargs)
+        context['category_name'] = category_name
+        return context
+
+    def get_form_kwargs(self):
+        # Získať všetky kwargs a pridať category_name
+        kwargs = super().get_form_kwargs()
+        category_name = self.kwargs.get('category_name')
+        kwargs['category_name'] = category_name
+        return kwargs
 
     def form_valid(self, form):
         # Najskôr vytvoríme tréning bez hráčov
@@ -57,34 +74,43 @@ class AddTraining(FormView):
             time=form.cleaned_data['time'],
         )
 
-        player = form.cleaned_data['player']
-        new_training.player.set(player)
+        # Priradíme hráčov k tréningu
+        all_players_in_category = form.cleaned_data['category'].players.all()
+        players = form.cleaned_data['players']
+        new_training.players.set(players)
 
-        for hrac in player:
-            hrac.attendance_count += 1
-            hrac.save()
+        for player in all_players_in_category:
+            player.all_training_count +=1
+            player.save()
 
-        messages.add_message(self.request, messages.SUCCESS, 'Training added!')
-        return super().form_valid(form)
+        # Aktualizujeme attendance_count pre každého hráča
+        for player in players:
+            player.attendance_count += 1
+            player.all_training_count += 1
+            player.save()
+
+        messages.success(self.request, "Training added successfully!")
+        category_name = form.cleaned_data['category'].name
+        return redirect(reverse('dochadzka_app:category', kwargs={'category_name': category_name}))
+
 
 
 class CategoryView(TemplateView):
     template_name = "category.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        categories= Category.objects.all()
+        category_name = self.kwargs.get("category_name")  # Získaj meno kategórie z URL
+
+        selected_category = Category.objects.get(name=category_name)
+        players_in_database = selected_category.players.all()
+        all_trainings = selected_category.trainings.all()
 
 
-        # Získaj hodnotu z GET požiadavky pre filtrovanie
-        input_category_name = self.request.GET.get('category_input')
-
-        if input_category_name:
-            # Filtrovanie podľa názvu kategórie
-            context['categories'] = categories
-            context['value'] = input_category_name  # Tento parameter pošleme do šablóny
-        else:
-            # Ak nebola vybraná kategória, zobrazíme všetky kategórie
-            context['categories'] = categories
-            context['value'] = None  # Ak neexistuje výber kategórie, neukážeme nič špecifické
+        # Pridanie do kontextu
+        context["players_in_dorastenci"] = players_in_database
+        context["all_trainings"] = all_trainings
 
         return context
+
+

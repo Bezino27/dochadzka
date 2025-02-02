@@ -1,20 +1,27 @@
 from django.contrib import admin
 from .models import Player, Training, Category
 
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+
 class PlayerAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('jersey_number', 'first_name', 'last_name', 'birth_date')  # Zabezpeč, aby kategória bola uvedená
+    search_fields = ('last_name', 'email')
+    filter_horizontal = ('categories',)  # Filtrovanie podľa kategórie
+
 
 class TrainingAdmin(admin.ModelAdmin):
-    list_display = ('day', 'date', 'time', 'category')
-    filter_horizontal = ('player',)  # Umožní výber viacerých hráčov v admin paneli
+    list_display = ('category', 'day', 'date', 'time')
+    search_fields = ('category__name', 'time')
+    list_filter = ('category',)
+    filter_horizontal = ('players',)  # ManyToManyField musí byť v `filter_horizontal`
 
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('category_name', 'year')
-    filter_horizontal = ('player', 'training')
-
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Player,PlayerAdmin)
 admin.site.register(Training, TrainingAdmin)
-admin.site.register(Category, CategoryAdmin)
+
 from django.contrib import admin
 
 # Register your models here.
