@@ -105,7 +105,17 @@ class CategoryView(TemplateView):
         selected_category = Category.objects.get(name=category_name)
         players_in_database = selected_category.players.all()
         all_trainings = selected_category.trainings.all()
-
+        counter = 0
+        # Inicializuj počítadlo pre každého hráča.
+        for player in players_in_database:
+            player.attendance_count = 0  # Resetuj počet účastí pre každého hráča
+            player.all_training_count = 0
+        # Prejdi všetkými tréningami a zisti, ktorí hráči sa zúčastnili
+        for training in all_trainings:
+            for player in players_in_database:
+                player.all_training_count += 1
+                if player in training.players.all():
+                    player.attendance_count += 1  # Zvýš počet účastí iba pre tohto hráča
 
         # Pridanie do kontextu
         context["players_in_dorastenci"] = players_in_database

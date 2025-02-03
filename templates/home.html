@@ -1,22 +1,40 @@
 {% extends "base.html" %}
 
-{%block title%} My super page {%endblock%}
+{% block title %} My super page {% endblock %}
 
-{% block body%}
-    <a href="{% url 'dochadzka_app:post' %}"> Add a new player </a>
+{% block body %}
+<div class="container mt-4">
+    <a href="{% url 'dochadzka_app:post' %}" class="btn btn-success mb-3">Pridať nového hráča</a>
     <hr>
-    <hr>
-    <nav>
-    <ul>
-        <li><a href="{% url 'dochadzka_app:category' category_name='Dorastenci' %}">Dorastenci</a></li>
-        <li><a href="{% url 'dochadzka_app:category' category_name='Muži' %}">Muži</a></li>
-        <li><a href="{% url 'dochadzka_app:category' category_name='Juniori' %}">Juniori</a></li>
-        <li><a href="{% url 'dochadzka_app:category' category_name='Starsi_Ziaci' %}">Starší žiaci</a></li>
-        
-    </ul>
+
+    <!-- Navigácia s Bootstrap -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light p-3 rounded">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Dorastenci' %}">Dorastenci</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Muži' %}">Muži</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Juniori' %}">Juniori</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Starsi_Ziaci' %}">Starší žiaci</a>
+            </li>
+        </ul>
     </nav>
-    {%for post in posts%}
-        {{post.jersey_number}} {{ post.first_name }} {{ post.last_name }} {{ post.attendance_count }} <br>
-        <hr>
-    {%endfor%}
-{%endblock%}
+    
+    <hr>
+
+    <!-- Zoznam hráčov v Bootstrap štýle -->
+    <ul class="list-group mt-3">
+        {% for post in posts %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><strong>{{ post.jersey_number }}</strong> - {{ post.first_name }} {{ post.last_name }}</span>
+                <span class="badge bg-primary rounded-pill">Počet tréningov: {{ post.attendance_count }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
