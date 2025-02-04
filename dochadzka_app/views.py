@@ -94,7 +94,6 @@ class AddTraining(FormView):
         return redirect(reverse('dochadzka_app:category', kwargs={'category_name': category_name}))
 
 
-
 class CategoryView(TemplateView):
     template_name = "category.html"
 
@@ -103,13 +102,15 @@ class CategoryView(TemplateView):
         category_name = self.kwargs.get("category_name")  # Získaj meno kategórie z URL
 
         selected_category = Category.objects.get(name=category_name)
-        players_in_database = selected_category.players.all()
+        players_in_database = selected_category.players.all().order_by('last_name')
         all_trainings = selected_category.trainings.all()
+
         counter = 0
         # Inicializuj počítadlo pre každého hráča.
         for player in players_in_database:
             player.attendance_count = 0  # Resetuj počet účastí pre každého hráča
             player.all_training_count = 0
+
         # Prejdi všetkými tréningami a zisti, ktorí hráči sa zúčastnili
         for training in all_trainings:
             for player in players_in_database:
@@ -117,10 +118,35 @@ class CategoryView(TemplateView):
                 if player in training.players.all():
                     player.attendance_count += 1  # Zvýš počet účastí iba pre tohto hráča
 
+        # Vypočítaj percentuálnu účasť pre každého hráča
+        for player in players_in_database:
+            if player.all_training_count > 0:  # Ak má hráč nejaké tréningy
+                player.attendance_percentage = (player.attendance_count / player.all_training_count) * 100
+            else:
+                player.attendance_percentage = 0  # Ak nemá žiadne tréningy, nastaviť 0
+                # %
+        players_in_database = sorted(players_in_database, key=lambda p: p.attendance_percentage, reverse=True)
+
         # Pridanie do kontextu
-        context["players_in_dorastenci"] = players_in_database
+        context["players_in_category"] = players_in_database
         context["all_trainings"] = all_trainings
 
         return context
 
+
+class TrainingView(TemplateView):
+    template_name = "training.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_name = self.kwargs.get("category_name")  # Získaj meno kategórie z URL
+        training_id = self.kwargs.get("training_target")  # Získaj meno kategórie z URL
+        selected_category = Category.objects.get(name=category_name)
+        players_in_category = selected_category.players.all()
+
+        selected_training = Training.objects.get(id=training_id)
+        players_in_training = selected_training.players.all().order_by('last_name')
+        context["selected_training"] = selected_training
+        context["players"] = players_in_training
+        context['players_in_category']=players_in_category
+        return context
 

@@ -3,22 +3,34 @@
 {% block title %} My Super Page {% endblock %}
 
 {% block body %}
+        <style>
+        .no-underline {
+            text-decoration: none;
+            color: black;
+        }
+
+        .no-underline:hover {
+            color: black;
+        }
+    </style>
 <div class="container mt-4">
     <a href="{% url 'dochadzka_app:post' %}" class="btn btn-primary mb-3">Pridať nového hráča</a>
 
     <hr>
     
     <h2 class="text-center">Hráči v kategórii {{ category_name }}</h2>
-    {% if players_in_dorastenci %}
+    {% if players_in_category %}
         <ul class="list-group">
-            {% for player in players_in_dorastenci %}
+            {% for player in players_in_category %}
                 <li class="list-group-item">
                     <!-- Kliknutím na meno sa zobrazia tréningy hráča -->
                     <strong class="player-toggle" data-player-id="player_{{ player.id }}" style="cursor: pointer;">
                         {{ player.jersey_number }} - {{ player.first_name }} {{ player.last_name }} 
                     </strong>
-                    <span class="badge bg-info">Účasť: {{ player.attendance_count }} z {{ player.all_training_count }}</span>
-
+                    <span class="badge" 
+                        style="background-color: {% if player.attendance_percentage >= 90 %}green{% elif player.attendance_percentage >= 80 %}greenyellow{% elif player.attendance_percentage >= 70 %}orange {% else %} red {% endif %}; color: black">
+                        Účasť: {{ player.attendance_count }} z {{ player.all_training_count }} ({{ player.attendance_percentage|floatformat:0  }}%)
+                    </span>
                     <!-- Skrytá sekcia s tréningami pre tohto hráča -->
                     <ul class="list-group mt-2 d-none" id="player_{{ player.id }}">
                         {% for training in all_trainings %}
@@ -31,8 +43,12 @@
                                     {% else %}
                                         <span style="color: black;">X</span>
                                     {% endif %}
-                                </span>    
+                                </span>
+                                <a href="{% url 'dochadzka_app:training_view' training_target=training.id category_name=category_name %}" class="btn btn-link no-underline">    
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
                             </li>
+                            
                         {% endfor %}
                     </ul>
                 </li>
@@ -53,6 +69,9 @@
             <li class="list-group-item">
                 <strong>{{ training.date|date:"d - F" }}</strong> → {{ training.day }} {{ training.time }}
                 <span class="badge bg-success">Počet hráčov: {{ training.players.count }}</span>
+                <a href="{% url 'dochadzka_app:training_view' training_target=training.id category_name=category_name %}" class="btn btn-link no-underline">
+                    <i class="fas fa-eye"></i> Detail
+                </a>
             </li>
         {% endfor %}
     </ul>

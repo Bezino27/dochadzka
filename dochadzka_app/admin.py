@@ -13,7 +13,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 
 class TrainingAdmin(admin.ModelAdmin):
-    list_display = ('category', 'day', 'date', 'time')
+    list_display = ('id','category', 'day', 'date', 'time')
     search_fields = ('category__name', 'time')
     list_filter = ('category',)
     filter_horizontal = ('players',)  # ManyToManyField musí byť v `filter_horizontal`
