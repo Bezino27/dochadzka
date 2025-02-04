@@ -6,7 +6,7 @@ from django.views.generic import TemplateView, FormView
 from rest_framework.templatetags.rest_framework import TRAILING_PUNCTUATION
 
 from .forms import PlayerForm, TrainingForm
-from .models import Player, Training, Category
+from .models import Player, Training, Category, AbsenceReason
 
 
 class HomePageView(TemplateView):
@@ -39,12 +39,18 @@ class AddPlayerView(FormView):
         messages.add_message(self.request, messages.SUCCESS, 'Player added!')
         return super().form_valid(form)
 
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views.generic.edit import FormView
 from django.contrib import messages
-from .models import Training
+from .models import Training, AbsenceReason, Player
 from .forms import TrainingForm
-from django.urls import reverse
+
 from django.shortcuts import redirect
+from django.urls import reverse
+from django.views.generic.edit import FormView
+from django.contrib import messages
+from .models import Training, AbsenceReason, Player, Category
 
 class AddTraining(FormView):
     template_name = "new_training.html"
@@ -52,46 +58,59 @@ class AddTraining(FormView):
     success_url = '/'
 
     def get_context_data(self, **kwargs):
-        # Získaj meno kategórie z URL
-        category_name = self.kwargs.get("category_name")
         context = super().get_context_data(**kwargs)
-        context['category_name'] = category_name
+        context['category_name'] = self.kwargs.get("category_name")
         return context
 
     def get_form_kwargs(self):
-        # Získať všetky kwargs a pridať category_name
         kwargs = super().get_form_kwargs()
-        category_name = self.kwargs.get('category_name')
-        kwargs['category_name'] = category_name
+        kwargs['category_name'] = self.kwargs.get('category_name')
         return kwargs
 
     def form_valid(self, form):
-        # Najskôr vytvoríme tréning bez hráčov
+        category = form.cleaned_data['category']
+        day = form.cleaned_data['day']
+        date = form.cleaned_data['date']
+        time = form.cleaned_data['time']
+        players = form.cleaned_data['players']
+
+        # Vytvorenie nového tréningu
         new_training = Training.objects.create(
-            category=form.cleaned_data['category'],
-            day=form.cleaned_data['day'],
-            date=form.cleaned_data['date'],
-            time=form.cleaned_data['time'],
+            category=category,
+            day=day,
+            date=date,
+            time=time
         )
 
-        # Priradíme hráčov k tréningu
-        all_players_in_category = form.cleaned_data['category'].players.all()
-        players = form.cleaned_data['players']
+        # Pridanie hráčov na tréning
         new_training.players.set(players)
 
-        for player in all_players_in_category:
-            player.all_training_count +=1
-            player.save()
+        # Zistenie všetkých hráčov v kategórii
+        all_players_in_category = category.players.all()
+        absent_players = set(all_players_in_category) - set(players)
 
-        # Aktualizujeme attendance_count pre každého hráča
-        for player in players:
-            player.attendance_count += 1
+        # Aktualizácia dochádzky
+        for player in all_players_in_category:
             player.all_training_count += 1
             player.save()
 
+        for player in players:
+            player.attendance_count += 1
+            player.save()
+
+        # Spracovanie absencií
+        for player in absent_players:
+            absence_reason = form.cleaned_data.get(f'absence_reason_{player.id}', "").strip()
+            if absence_reason:
+                AbsenceReason.objects.create(
+                    player=player,
+                    training=new_training,
+                    reason=absence_reason
+                )
+
         messages.success(self.request, "Training added successfully!")
-        category_name = form.cleaned_data['category'].name
-        return redirect(reverse('dochadzka_app:category', kwargs={'category_name': category_name}))
+        return redirect(reverse('dochadzka_app:category', kwargs={'category_name': category.name}))
+
 
 
 class CategoryView(TemplateView):
@@ -103,7 +122,8 @@ class CategoryView(TemplateView):
 
         selected_category = Category.objects.get(name=category_name)
         players_in_database = selected_category.players.all().order_by('last_name')
-        all_trainings = selected_category.trainings.all()
+        all_trainings = selected_category.trainings.all().order_by('-date')
+        all_absence=AbsenceReason.objects.all()
 
         counter = 0
         # Inicializuj počítadlo pre každého hráča.
@@ -130,7 +150,7 @@ class CategoryView(TemplateView):
         # Pridanie do kontextu
         context["players_in_category"] = players_in_database
         context["all_trainings"] = all_trainings
-
+        context["all_absence"] = all_absence
         return context
 
 
@@ -143,10 +163,29 @@ class TrainingView(TemplateView):
         selected_category = Category.objects.get(name=category_name)
         players_in_category = selected_category.players.all()
 
+        all_absence = AbsenceReason.objects.all()
+
+
         selected_training = Training.objects.get(id=training_id)
         players_in_training = selected_training.players.all().order_by('last_name')
         context["selected_training"] = selected_training
         context["players"] = players_in_training
         context['players_in_category']=players_in_category
+        context['all_absence']=all_absence
         return context
 
+class PlayerView(TemplateView):
+    template_name = "player_view.html"
+    def get_context_data(self, **kwargs):
+        context=super().get_context_data(**kwargs)
+        player_id=self.kwargs.get("player_id")
+        selected_player=Player.objects.get(id=player_id)
+        player_trainings=selected_player.trainings.all().order_by('-date')
+        player_categories=selected_player.categories.all()
+        all_trainings=Training.objects.all()
+
+        context["all_trainings"]=all_trainings
+        context["selected_player"]=selected_player
+        context["player_trainings"]=player_trainings
+        context["player_categories"]=player_categories
+        return context

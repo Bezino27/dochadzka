@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %} Detail tréningu {% endblock %}
+
+{% block body %}
+    {{ selected_player.jersey_number }} - {{ selected_player.first_name }} {{ selected_player.last_name }}
+    <hr>
+    
+    {% for category in player_categories %}
+    <strong>{{ category.name }}</strong>
+    <hr>
+
+        {% for training in all_trainings %}
+            {% if training.category == category %}
+                {{ training.date }} {{ training.day }} {{ training.time }}
+                <hr>
+            {% endif %}
+        {% endfor %}
+
+    {% endfor %}
+    Absolvované tréningy
+    <hr>
+    {% for training in player_trainings %}
+        {{ training.date }} {{ training.day }} {{ training.time }} --> {{ training.category }}
+        <hr>
+    {% endfor %}
+    Neabsolvované tréningy
+    
+{% endblock %}
