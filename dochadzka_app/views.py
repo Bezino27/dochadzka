@@ -1,19 +1,13 @@
-from lib2to3.fixes.fix_input import context
-from unicodedata import category
-
-from django.contrib import messages
 from django.views.generic import TemplateView, FormView
-from rest_framework.templatetags.rest_framework import TRAILING_PUNCTUATION
-
 from .forms import PlayerForm, TrainingForm
-from .models import Player, Training, Category, AbsenceReason
+
 
 
 class HomePageView(TemplateView):
     template_name = "home.html"
     def get_context_data(self, **kwargs):
         context= super().get_context_data(**kwargs)
-        context['posts'] = Player.objects.all().order_by('-birth_date')
+        context['posts'] = Player.objects.all().order_by('birth_date')
         return context
 
 class AddPlayerView(FormView):
@@ -39,13 +33,8 @@ class AddPlayerView(FormView):
         messages.add_message(self.request, messages.SUCCESS, 'Player added!')
         return super().form_valid(form)
 
-from django.shortcuts import redirect
-from django.urls import reverse
-from django.views.generic.edit import FormView
-from django.contrib import messages
-from .models import Training, AbsenceReason, Player
-from .forms import TrainingForm
 
+from .forms import TrainingForm
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic.edit import FormView
@@ -182,10 +171,20 @@ class PlayerView(TemplateView):
         selected_player=Player.objects.get(id=player_id)
         player_trainings=selected_player.trainings.all().order_by('-date')
         player_categories=selected_player.categories.all()
-        all_trainings=Training.objects.all()
+        all_trainings=Training.objects.all().order_by('-date')
+        all_absence = AbsenceReason.objects.all()
 
+
+        context['all_absence']=all_absence
         context["all_trainings"]=all_trainings
         context["selected_player"]=selected_player
         context["player_trainings"]=player_trainings
         context["player_categories"]=player_categories
+        return context
+
+class TrainingEditView(TemplateView):
+    template_name = "training_edit.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
         return context

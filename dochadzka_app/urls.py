@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .models import Training, Player
-from .views import HomePageView, AddPlayerView, AddTraining, CategoryView, TrainingView, PlayerView
+from .views import HomePageView, AddPlayerView, AddTraining, CategoryView, TrainingView, PlayerView, TrainingEditView
 
 app_name = 'dochadzka_app'
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path("category/<str:category_name>/", CategoryView.as_view(), name="category"),
     path("training_view/<int:training_target>/<str:category_name>/'", TrainingView.as_view(), name="training_view"),
     path("player_view/<int:player_id>", PlayerView.as_view(), name='player_view'),
+    path("training_edit/<int:training_id>", TrainingEditView.as_view(), name='training_edit')
 ]
