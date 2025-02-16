@@ -36,7 +36,7 @@ STATIC_URL = '/static/'
 
 # Miesta, kde Django hľadá statické súbory
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    BASE_DIR / 'static',
 ]
 
 # Application definition
