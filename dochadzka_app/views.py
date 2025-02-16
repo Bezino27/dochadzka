@@ -1,6 +1,5 @@
 from django.views.generic import TemplateView, FormView
-from .forms import PlayerForm, TrainingForm
-
+from .forms import PlayerForm, TrainingForm, EditTrainingForm
 
 
 class HomePageView(TemplateView):
@@ -184,7 +183,59 @@ class PlayerView(TemplateView):
 
 class TrainingEditView(TemplateView):
     template_name = "training_edit.html"
+    form_class = EditTrainingForm
+    success_url = '/'
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        context['category_name'] = self.kwargs.get("category_name")
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['category_name'] = self.kwargs.get('category_name')
+        return kwargs
+
+    def form_valid(self, form):
+        category = form.cleaned_data['category']
+        day = form.cleaned_data['day']
+        date = form.cleaned_data['date']
+        time = form.cleaned_data['time']
+        players = form.cleaned_data['players']
+
+        # Vytvorenie nového tréningu
+        new_training = Training.objects.create(
+            category=category,
+            day=day,
+            date=date,
+            time=time
+        )
+
+        # Pridanie hráčov na tréning
+        new_training.players.set(players)
+
+        # Zistenie všetkých hráčov v kategórii
+        all_players_in_category = category.players.all()
+        absent_players = set(all_players_in_category) - set(players)
+
+        # Aktualizácia dochádzky
+        for player in all_players_in_category:
+            player.all_training_count += 1
+            player.save()
+
+        for player in players:
+            player.attendance_count += 1
+            player.save()
+
+        # Spracovanie absencií
+        for player in absent_players:
+            absence_reason = form.cleaned_data.get(f'absence_reason_{player.id}', "").strip()
+            if absence_reason:
+                AbsenceReason.objects.create(
+                    player=player,
+                    training=new_training,
+                    reason=absence_reason
+                )
+
+        messages.success(self.request, "Training added successfully!")
+        return redirect(reverse('dochadzka_app:category', kwargs={'category_name': category.name}))

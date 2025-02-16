@@ -67,6 +67,6 @@
             ⬅️ Späť do kategórie {{ category_name }}
         </a>
     </div>
-    <a href="{% url 'dochadzka_app:training_edit' training_id=selected_training.id %}"> Edit </a>
+    <a href="{% url 'dochadzka_app:training_edit' training_id=selected_training.id category_name=category_name %}"> Edit </a>
 </div>
 {% endblock %}

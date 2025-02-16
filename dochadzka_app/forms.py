@@ -16,16 +16,6 @@ class PlayerForm(forms.ModelForm):
         }
 
 from django import forms
-from .models import Training, AbsenceReason, Player, Category
-
-from django import forms
-from django.shortcuts import redirect
-from django.urls import reverse
-from django.views.generic.edit import FormView
-from django.contrib import messages
-from .models import Training, AbsenceReason, Player, Category
-
-from django import forms
 from .models import Training, Player, Category, AbsenceReason
 
 class TrainingForm(forms.ModelForm):
@@ -54,3 +44,29 @@ class TrainingForm(forms.ModelForm):
             'players': forms.CheckboxSelectMultiple,
         }
 
+class EditTrainingForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        category_name = kwargs.pop('category_name', None)
+        super().__init__(*args, **kwargs)
+
+        if category_name:
+            category = Category.objects.get(name=category_name)
+            self.fields['category'].initial = category
+            self.fields['players'].queryset = Player.objects.filter(categories=category)
+
+            # Pridáme polia pre dôvody absencie k jednotlivým hráčom
+            for player in self.fields['players'].queryset:
+                self.fields[f'absence_reason_{player.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.TextInput(
+                        attrs={'placeholder': f'Dôvod absencie pre {player.first_name} {player.last_name}'})
+                )
+
+    class Meta:
+        model = Training
+        fields = ['category', 'day', 'date', 'time', 'players']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'time': forms.TimeInput(attrs={'type': 'time'}),
+            'players': forms.CheckboxSelectMultiple,
+        }
