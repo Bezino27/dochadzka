@@ -32,12 +32,6 @@
                         Účasť: {{ player.attendance_count }} z {{ player.all_training_count }} ({{ player.attendance_percentage|floatformat:0  }}%)
                     </span>
 
-                    <a href="{% url 'dochadzka_app:player_view' player.id %}"
-                       class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-eye"></i> Detail
-                    </a>
-
-
                     <!-- Skrytá sekcia s tréningami pre tohto hráča -->
                     <ul class="list-group mt-2 d-none" id="player_{{ player.id }}">
                         {% for training in all_trainings%}
