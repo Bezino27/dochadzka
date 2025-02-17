@@ -7,26 +7,6 @@
     <a href="{% url 'dochadzka_app:post' %}" class="btn btn-success mb-3">Pridať nového hráča</a>
     <hr>
 
-    <!-- Navigácia s Bootstrap -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light p-3 rounded">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Dorastenci' %}">Dorastenci</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Muži' %}">Muži</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Juniori' %}">Juniori</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'dochadzka_app:category' category_name='Starsi_Ziaci' %}">Starší žiaci</a>
-            </li>
-        </ul>
-    </nav>
-    
-    <hr>
-
     <!-- Zoznam hráčov v Bootstrap štýle -->
     <ul class="list-group mt-3">
         {% for post in posts %}
