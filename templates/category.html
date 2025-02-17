@@ -12,6 +12,12 @@
         .no-underline:hover {
             color: black;
         }
+        .attendance{
+            width: 45px;
+            height: 27px;
+            line-height: 27px;
+            border-radius: 10px;
+        }
         @media (max-width: 800px) {
             .detail {
                 display: none;
@@ -27,16 +33,20 @@
     {% if players_in_category %}
         <ul class="list-group">
             {% for player in players_in_category %}
-                <li class="list-group-item">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
                     <!-- Kliknutím na meno sa zobrazia tréningy hráča -->
                     <strong class="player-toggle" data-player-id="player_{{ player.id }}" style="cursor: pointer;">
                         {{ player.jersey_number }} - {{ player.first_name }} {{ player.last_name }}
                     </strong>
+                
                     <span class="badge"
                         style="background-color: {% if player.attendance_percentage >= 90 %}green{% elif player.attendance_percentage >= 80 %}greenyellow{% elif player.attendance_percentage >= 70 %}orange {% else %} red {% endif %}; color: black">
-                        Účasť: {{ player.attendance_count }} z {{ player.all_training_count }} ({{ player.attendance_percentage|floatformat:0  }}%)
+                        <div class="attendance"> 
+                           {{ player.attendance_percentage|floatformat:0  }}%
+                        </div>
                     </span>
-
+                
+                </li>
                     <!-- Skrytá sekcia s tréningami pre tohto hráča -->
                     <ul class="list-group mt-2 d-none" id="player_{{ player.id }}">
                         {% for training in all_trainings%}
@@ -76,7 +86,6 @@
                         </li>
                         {% endfor %}
                     </ul>
-                </li>
             {% endfor %}
         </ul>
     {% else %}
