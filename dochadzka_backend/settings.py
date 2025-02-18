@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-1w5z!l#w17qwi-ft4*08_3++sxuw81=)#m!r)7@c!+w9qwzp=n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['dochadzka.onrender.com', 'localhost', '127.0.0.1', 'web-production-4e43.up.railway.app']
+ALLOWED_HOSTS = ['dochadzka.onrender.com', 'localhost', '127.0.0.1', 'web-databaseurl-5e2d.up.railway.app']
 
 # Kde sa budú ukladať statické súbory pri deployi
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
