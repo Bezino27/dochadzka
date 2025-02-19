@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import UniqueConstraint
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True, default="Neznáma kategória")  # Pridanie default hodnoty
@@ -8,7 +10,7 @@ class Category(models.Model):
 
 
 class Player(models.Model):
-    jersey_number = models.IntegerField(unique=True)  # Unikátne číslo dresu
+    jersey_number = models.IntegerField()  # Unikátne číslo dresu
     first_name = models.CharField(max_length=50)  # Krstné meno hráča
     last_name = models.CharField(max_length=50)  # Priezvisko hráča
     birth_date = models.DateField()  # Dátum narodenia hráča
@@ -18,6 +20,10 @@ class Player(models.Model):
     all_training_count = models.IntegerField(default=0) # Počet možných absolvovaných tréningov
     categories = models.ManyToManyField(Category, related_name="players")  # Hráč môže byť vo viacerých kategóriách
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['first_name', 'last_name', 'birth_date'], name='unique_player_identity')
+        ]
     def __str__(self):
         return f"{self.jersey_number} - {self.first_name} {self.last_name} - {self.attendance_count}"
 # Create your models here.
