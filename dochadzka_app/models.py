@@ -14,7 +14,7 @@ class Player(models.Model):
     first_name = models.CharField(max_length=50)  # Krstné meno hráča
     last_name = models.CharField(max_length=50)  # Priezvisko hráča
     birth_date = models.DateField()  # Dátum narodenia hráča
-    email_1 = models.EmailField(unique=True)  # Primárny email
+    email_1 = models.EmailField()  # Primárny email
     email_2 = models.EmailField(blank=True, null=True)  # Sekundárny email (nepovinné)
     attendance_count = models.IntegerField(default=0)  # Počet absolvovaných tréningov
     all_training_count = models.IntegerField(default=0) # Počet možných absolvovaných tréningov
